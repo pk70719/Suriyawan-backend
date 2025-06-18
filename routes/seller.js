@@ -110,5 +110,3 @@ router.get('/profile', verifySeller, async (req, res) => {
 });
 
 module.exports = router;
-const devRoutes = require("./routes/devRoutes");
-app.use("/api/dev", devRoutes);
