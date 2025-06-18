@@ -2,40 +2,40 @@
 const express = require("express");
 const router = express.Router();
 
-// ✅ Controller Functions
+// ✅ Controller Functions (fixed names)
 const {
-  loginCustomer,       // D1: Login
-  logoutCustomer,      // D12: Logout
-  getCustomerInfo,     // D3: Customer Info
-  getProducts,         // D2: Load Products
-  placeOrder,          // D5: Place Order
-  trackOrder,          // D7: Track Order
-  askHelpdesk          // D8–D11: Helpdesk AI Chat
+  login,
+  logout,
+  info,
+  products,
+  order,
+  track,
+  helpdesk
 } = require("../controllers/customerController");
 
 // ✅ Middleware
 const { verifyCustomer } = require("../middlewares/auth");
 
 // ✅ D1: Customer Login
-router.post("/login", loginCustomer);
+router.post("/login", login);
 
 // ✅ D12: Customer Logout
-router.post("/logout", verifyCustomer, logoutCustomer);
+router.post("/logout", verifyCustomer, logout);
 
 // ✅ D3: Get Customer Info (Secure)
-router.get("/info", verifyCustomer, getCustomerInfo);
+router.get("/info", verifyCustomer, info);
 
 // ✅ D2: Fetch All Products (Public)
-router.get("/products", getProducts);
+router.get("/products", products);
 
 // ✅ D5: Place a New Order (Only if logged in)
-router.post("/order", verifyCustomer, placeOrder);
+router.post("/order", verifyCustomer, order);
 
 // ✅ D7: Track Order by Order ID (Customer only)
-router.get("/track/:orderId", verifyCustomer, trackOrder);
+router.get("/track/:orderId", verifyCustomer, track);
 
 // ✅ D8–D11: Ask AI Helpdesk (Secure route)
-router.post("/helpdesk/ask", verifyCustomer, askHelpdesk);
+router.post("/helpdesk/ask", verifyCustomer, helpdesk);
 
 // 🛠️ D13–D25: Wallet, Wishlist, Feedback, etc. will come here
 
