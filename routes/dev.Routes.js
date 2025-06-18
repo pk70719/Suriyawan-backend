@@ -4,16 +4,23 @@ const Owner = require("../models/ownerModel");
 const bcrypt = require("bcryptjs");
 
 router.get("/create-owner", async (req, res) => {
-  const hashedPassword = await bcrypt.hash("admin123", 10);
+  try {
+    // 🔐 Real password securely hashed
+    const hashedPassword = await bcrypt.hash("gss626hPgeehghx56", 10);
 
-  const owner = new Owner({
-    username: "pradeepseth646",
-    password: gss626hPgeehghx56,
-    name: "pradeep seth"
-  });
+    const owner = new Owner({
+      username: "Pradeepseth646",     // ✅ Your actual username
+      password: hashedPassword,       // ✅ Hashed password
+      name: "pradeep seth"
+    });
 
-  await owner.save();
-  res.json({ success: true, message: "Owner created ✅" });
+    await owner.save();
+    res.json({ success: true, message: "✅ Owner created successfully" });
+
+  } catch (error) {
+    console.error("❌ Error creating owner:", error);
+    res.status(500).json({ success: false, message: "❌ Server error" });
+  }
 });
 
 module.exports = router;
