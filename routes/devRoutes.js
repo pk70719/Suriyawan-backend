@@ -5,12 +5,11 @@ const bcrypt = require("bcryptjs");
 
 router.get("/create-owner", async (req, res) => {
   try {
-    // 🔐 Real password securely hashed
     const hashedPassword = await bcrypt.hash("gss626hPgeehghx56", 10);
 
     const owner = new Owner({
-      username: "Pradeepseth646",     // ✅ Your actual username
-      password: hashedPassword,       // ✅ Hashed password
+      username: "Pradeepseth646",
+      password: hashedPassword,
       name: "pradeep seth"
     });
 
