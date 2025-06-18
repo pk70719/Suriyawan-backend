@@ -29,16 +29,18 @@ const sellerRoutes = require('./routes/seller');
 const deliveryRoutes = require('./routes/delivery');
 const customerRoutes = require('./routes/customer');
 const uploadRoutes = require('./routes/uploadRoutes'); // 🆕 Upload Route
+const devRoutes = require('./routes/devRoutes');       // ✅ Add this line
 
 // ✅ Route setup
 app.use('/api/owner', ownerRoutes);
 app.use('/api/seller', sellerRoutes);
 app.use('/api/delivery', deliveryRoutes);
 app.use('/api/customer', customerRoutes);
-app.use('/api', uploadRoutes); // 🆕 upload route active
+app.use('/api', uploadRoutes);
+app.use('/api/dev', devRoutes); // ✅ Add this line
 
 // ✅ Serve uploaded images publicly
-app.use('/uploads', express.static(path.join(__dirname, 'uploads'))); // 🆕
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // ✅ Health Check
 app.get('/', (req, res) => {
