@@ -2,13 +2,24 @@ const multer = require("multer");
 const path = require("path");
 const fs = require("fs");
 
-// 🔧 Storage engine
+// ✅ Dynamic folder creation based on role in URL
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
-    const role = req.params.role || 'common'; // seller / customer / delivery / owner
+    // ✅ Extract role from URL if params not yet parsed
+    const urlParts = req.originalUrl.split('/');
+    const role = urlParts.includes("seller")
+      ? "seller"
+      : urlParts.includes("customer")
+      ? "customer"
+      : urlParts.includes("delivery")
+      ? "delivery"
+      : urlParts.includes("owner")
+      ? "owner"
+      : "common";
+
     const uploadPath = `uploads/${role}`;
 
-    // Create role-based folder if not exists
+    // ✅ Create folder if doesn't exist
     if (!fs.existsSync(uploadPath)) {
       fs.mkdirSync(uploadPath, { recursive: true });
     }
@@ -21,7 +32,7 @@ const storage = multer.diskStorage({
   }
 });
 
-// ✅ File type filter
+// ✅ Allow only image files
 const fileFilter = (req, file, cb) => {
   const allowedTypes = /jpeg|jpg|png|webp/;
   const ext = path.extname(file.originalname).toLowerCase();
@@ -32,12 +43,12 @@ const fileFilter = (req, file, cb) => {
   }
 };
 
-// ✅ Upload setup
+// ✅ Multer config
 const upload = multer({
   storage,
   fileFilter,
   limits: {
-    fileSize: 3 * 1024 * 1024 // Max 3MB file
+    fileSize: 3 * 1024 * 1024 // 3MB
   }
 });
 
