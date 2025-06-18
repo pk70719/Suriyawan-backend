@@ -29,7 +29,7 @@ const sellerRoutes = require('./routes/seller');
 const deliveryRoutes = require('./routes/delivery');
 const customerRoutes = require('./routes/customer');
 const uploadRoutes = require('./routes/uploadRoutes'); // Image Upload
-const devRoutes = require('./routes/devRoutes');       // 🔧 Owner creation
+// ❌ devRoutes removed
 
 // ✅ Route setup
 app.use('/api/owner', ownerRoutes);
@@ -37,7 +37,7 @@ app.use('/api/seller', sellerRoutes);
 app.use('/api/delivery', deliveryRoutes);
 app.use('/api/customer', customerRoutes);
 app.use('/api', uploadRoutes);
-app.use('/api/dev', devRoutes); // ✅ Dev Route to create owner
+// ❌ app.use('/api/dev', devRoutes); removed
 
 // ✅ Serve uploaded images publicly
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
