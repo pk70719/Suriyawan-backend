@@ -3,7 +3,7 @@ const express = require('express');
 const cors = require('cors');
 const dotenv = require('dotenv');
 const mongoose = require('mongoose');
-const path = require('path'); // 🆕 for serving uploads
+const path = require('path'); // For serving uploads
 
 // ✅ Load environment variables
 dotenv.config();
@@ -28,8 +28,8 @@ const ownerRoutes = require('./routes/owner');
 const sellerRoutes = require('./routes/seller');
 const deliveryRoutes = require('./routes/delivery');
 const customerRoutes = require('./routes/customer');
-const uploadRoutes = require('./routes/uploadRoutes'); // 🆕 Upload Route
-const devRoutes = require('./routes/devRoutes');       // ✅ Add this line
+const uploadRoutes = require('./routes/uploadRoutes'); // Image Upload
+const devRoutes = require('./routes/devRoutes');       // 🔧 Owner creation
 
 // ✅ Route setup
 app.use('/api/owner', ownerRoutes);
@@ -37,7 +37,7 @@ app.use('/api/seller', sellerRoutes);
 app.use('/api/delivery', deliveryRoutes);
 app.use('/api/customer', customerRoutes);
 app.use('/api', uploadRoutes);
-app.use('/api/dev', devRoutes); // ✅ Add this line
+app.use('/api/dev', devRoutes); // ✅ Dev Route to create owner
 
 // ✅ Serve uploaded images publicly
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
