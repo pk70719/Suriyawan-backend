@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 
-// Controllers
+// 🔄 Controllers
 const {
   sellerLogin,
   sellerRegister,
@@ -27,35 +27,43 @@ const {
   ownerLogin,
   ownerProfile,
   updateOwner
-} = require('../controllers/ownerController'); // Optional if owner profile control is needed
+} = require('../controllers/ownerController');
 
-// Auth Middlewares
+// 🔐 Middlewares
 const {
   verifySeller,
   verifyCustomer,
   verifyDeliveryBoy,
-  verifyOwner // Optional if used
+  verifyOwner
 } = require('../middlewares/auth');
 
+// ==============================
 // 📦 Seller Routes
+// ==============================
 router.post('/seller/register', sellerRegister);
 router.post('/seller/login', sellerLogin);
 router.get('/seller/profile', verifySeller, sellerProfile);
 router.put('/seller/profile', verifySeller, updateSeller);
 
+// ==============================
 // 🚚 Delivery Boy Routes
+// ==============================
 router.post('/delivery/register', deliveryRegister);
 router.post('/delivery/login', deliveryLogin);
 router.get('/delivery/profile', verifyDeliveryBoy, deliveryProfile);
 router.put('/delivery/profile', verifyDeliveryBoy, updateDelivery);
 
+// ==============================
 // 👥 Customer Routes
+// ==============================
 router.post('/customer/register', customerRegister);
 router.post('/customer/login', customerLogin);
 router.get('/customer/profile', verifyCustomer, customerProfile);
 router.put('/customer/profile', verifyCustomer, updateCustomer);
 
-// 👑 Owner Routes (Optional - Use if Owner dashboard has profile features)
+// ==============================
+// 👑 Owner Routes
+// ==============================
 router.post('/owner/login', ownerLogin);
 router.get('/owner/profile', verifyOwner, ownerProfile);
 router.put('/owner/profile', verifyOwner, updateOwner);
