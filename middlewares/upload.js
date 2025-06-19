@@ -2,54 +2,50 @@ const multer = require("multer");
 const path = require("path");
 const fs = require("fs");
 
-// ✅ Dynamic folder creation based on role in URL
+// ✅ Dynamic destination folder based on role
 const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    // ✅ Extract role from URL if params not yet parsed
-    const urlParts = req.originalUrl.split('/');
-    const role = urlParts.includes("seller")
-      ? "seller"
-      : urlParts.includes("customer")
-      ? "customer"
-      : urlParts.includes("delivery")
-      ? "delivery"
-      : urlParts.includes("owner")
-      ? "owner"
-      : "common";
+  destination: (req, file, cb) => {
+    const urlParts = req.originalUrl.split("/");
 
-    const uploadPath = `uploads/${role}`;
+    let role = "common";
+    if (urlParts.includes("seller")) role = "seller";
+    else if (urlParts.includes("customer")) role = "customer";
+    else if (urlParts.includes("delivery")) role = "delivery";
+    else if (urlParts.includes("owner")) role = "owner";
 
-    // ✅ Create folder if doesn't exist
+    const uploadPath = path.join(__dirname, `../uploads/${role}`);
+
+    // ✅ Create folder if it doesn't exist
     if (!fs.existsSync(uploadPath)) {
       fs.mkdirSync(uploadPath, { recursive: true });
     }
 
     cb(null, uploadPath);
   },
-  filename: function (req, file, cb) {
-    const uniqueName = Date.now() + "_" + file.originalname.replace(/\s+/g, "_");
-    cb(null, uniqueName);
-  }
+
+  filename: (req, file, cb) => {
+    const timestamp = Date.now();
+    const safeName = file.originalname.replace(/\s+/g, "_").toLowerCase();
+    cb(null, `${timestamp}_${safeName}`);
+  },
 });
 
-// ✅ Allow only image files
+// ✅ Only image files filter
 const fileFilter = (req, file, cb) => {
-  const allowedTypes = /jpeg|jpg|png|webp/;
+  const allowedExts = /jpeg|jpg|png|webp/;
   const ext = path.extname(file.originalname).toLowerCase();
-  if (allowedTypes.test(ext)) {
+  if (allowedExts.test(ext)) {
     cb(null, true);
   } else {
-    cb(new Error("❌ Only .jpeg, .jpg, .png, .webp files allowed"), false);
+    cb(new Error("❌ Only image files (.jpeg, .jpg, .png, .webp) are allowed"));
   }
 };
 
-// ✅ Multer config
+// ✅ Max file size = 3MB
 const upload = multer({
   storage,
   fileFilter,
-  limits: {
-    fileSize: 3 * 1024 * 1024 // 3MB
-  }
+  limits: { fileSize: 3 * 1024 * 1024 }, // 3MB
 });
 
 module.exports = upload;
