@@ -1,66 +1,16 @@
-const express = require('express');
-const router = express.Router();
-const jwt = require('jsonwebtoken');
-const verifyToken = require('../middlewares/verifyToken');
+// ✅ Updated login route (password removed)
+router.post("/login", async (req, res) => {
+  const { username } = req.body;
+  if (!username) return res.status(400).json({ success: false, message: "Username required" });
 
-// 🧑‍💼 Dummy Owner Credentials (can move to DB later)
-const DUMMY_OWNER = {
-  username: 'pradeepseth646',
-  password: 'gss626hPgeehghx56' // ✅ Static Auth Password
-};
+  const owner = await Owner.findOne({ email: username.toLowerCase() });
+  if (!owner) return res.status(401).json({ success: false, message: "Owner not found" });
 
-// ✅ POST /api/owner/login — Owner Login
-router.post('/login', (req, res) => {
-  const { username, password } = req.body;
+  const token = jwt.sign(
+    { role: owner.role, username: owner.email },
+    process.env.JWT_SECRET,
+    { expiresIn: "2h" }
+  );
 
-  if (username === DUMMY_OWNER.username && password === DUMMY_OWNER.password) {
-    const token = jwt.sign(
-      { role: 'owner', username },
-      process.env.JWT_SECRET || 'defaultsecret',
-      { expiresIn: '2h' }
-    );
-
-    return res.json({
-      success: true,
-      message: '✅ लॉगिन सफल!',
-      token
-    });
-  }
-
-  return res.status(401).json({
-    success: false,
-    message: '❌ अमान्य क्रेडेंशियल्स!'
-  });
+  res.json({ success: true, message: "✅ Login successful", token, owner });
 });
-
-// ✅ GET /api/owner/ping — Health Check
-router.get('/ping', (req, res) => {
-  res.json({
-    success: true,
-    message: '✅ Owner API Active & Connected!'
-  });
-});
-
-// ✅ GET /api/owner/stats — Dashboard Analytics
-router.get('/stats', verifyToken, (req, res) => {
-  try {
-    // You can replace this with real DB stats later
-    const dashboardData = {
-      success: true,
-      orders: 120,
-      revenue: "₹34,000",
-      deliveryBoys: 7,
-      sellers: 15
-    };
-    res.json(dashboardData);
-  } catch (err) {
-    res.status(500).json({ success: false, message: "⚠️ Server error" });
-  }
-});
-
-// ✅ GET /api/owner/verify — Token Verify for Frontend AuthGuard
-router.get('/verify', verifyToken, (req, res) => {
-  res.json({ success: true, message: "✅ Token valid" });
-});
-
-module.exports = router;
