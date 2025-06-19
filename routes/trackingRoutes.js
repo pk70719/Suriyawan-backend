@@ -1,7 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const Tracking = require("../models/Tracking");
-const auth = require("../middleware/ownerAuth");
+const auth = require("../middlewares/ownerAuth"); // ✅ Fixed path here
 
 // 📌 Save new tracking ID
 router.post("/create", auth, async (req, res) => {
