@@ -3,7 +3,7 @@ const DeliveryBoy = require("../models/DeliveryBoy");
 
 const JWT_SECRET = process.env.JWT_SECRET || "suriyawan1Super2SecretKey77";
 
-// 🔐 Utility
+// 🔐 Token Generator
 const generateToken = (deliveryBoy) => {
   return jwt.sign(
     { id: deliveryBoy._id, role: "delivery" },
@@ -12,7 +12,7 @@ const generateToken = (deliveryBoy) => {
   );
 };
 
-// ✅ REGISTER Delivery Boy
+// ✅ Register
 exports.register = async (req, res) => {
   try {
     const { name, mobile, area } = req.body;
@@ -36,7 +36,7 @@ exports.register = async (req, res) => {
   }
 };
 
-// ✅ LOGIN Delivery Boy
+// ✅ Login
 exports.login = async (req, res) => {
   try {
     const { mobile } = req.body;
@@ -65,7 +65,7 @@ exports.login = async (req, res) => {
   }
 };
 
-// ✅ GET Sample Assignments
+// ✅ Assignments (sample data)
 exports.assignments = async (req, res) => {
   try {
     const assignments = [
@@ -79,44 +79,66 @@ exports.assignments = async (req, res) => {
   }
 };
 
-// ✅ UPDATE Delivery Status
+// ✅ Update Status
 exports.updateStatus = async (req, res) => {
   try {
     const { parcelId, status } = req.body;
     if (!parcelId || !status)
       return res.status(400).json({ success: false, message: "📦 Parcel ID & status required" });
 
-    // Future: Update database
     res.json({ success: true, message: `📝 Parcel ${parcelId} marked '${status}'` });
   } catch (err) {
     res.status(500).json({ success: false, message: "❌ Failed to update status" });
   }
 };
 
-// ✅ UPDATE Cash Collection
+// ✅ Update Cash
 exports.updateCash = async (req, res) => {
   try {
     const { amount } = req.body;
     if (!amount)
       return res.status(400).json({ success: false, message: "💸 Amount required" });
 
-    // Future: Save to DB
     res.json({ success: true, message: `💰 ₹${amount} collected & updated.` });
   } catch (err) {
     res.status(500).json({ success: false, message: "❌ Cash update failed" });
   }
 };
 
-// ✅ UPDATE GPS Location
+// ✅ Update Location
 exports.updateLocation = async (req, res) => {
   try {
     const { lat, long } = req.body;
     if (!lat || !long)
       return res.status(400).json({ success: false, message: "📍 Latitude & longitude required" });
 
-    // Future: Save to DB or Firebase
     res.json({ success: true, message: "📡 Location received", location: { lat, long } });
   } catch (err) {
     res.status(500).json({ success: false, message: "❌ Location update failed" });
   }
+};
+
+// ✅ Profile
+exports.profile = async (req, res) => {
+  try {
+    const deliveryBoy = await DeliveryBoy.findById(req.user.id);
+    if (!deliveryBoy)
+      return res.status(404).json({ success: false, message: "🧍 Delivery profile not found" });
+
+    res.json({
+      success: true,
+      deliveryBoy: {
+        name: deliveryBoy.name,
+        mobile: deliveryBoy.mobile,
+        area: deliveryBoy.area
+      }
+    });
+  } catch (err) {
+    res.status(500).json({ success: false, message: "❌ Failed to fetch profile" });
+  }
+};
+
+// ✅ Logout (optional dummy for now)
+exports.logout = async (req, res) => {
+  res.json({ success: true, message: "👋 Logged out successfully" });
 };
