@@ -1,40 +1,76 @@
 const jwt = require("jsonwebtoken");
+const Owner = require("../models/owner");
 
-// 🔐 Use ENV for real credentials
-const OWNER_USERNAME = process.env.OWNER_USERNAME || "pradeepseth646";
-const OWNER_PASSWORD = process.env.OWNER_PASSWORD || "gss626hPgeehghx56";
+// 📌 ENV Secret Key
 const JWT_SECRET = process.env.JWT_SECRET || "suriyawan1Super2SecretKey77";
 
-// ✅ Owner Login
-exports.loginOwner = (req, res) => {
-  const { username, password } = req.body;
+// ✅ Owner Login (without password)
+exports.loginOwner = async (req, res) => {
+  const { username } = req.body;
 
-  if (!username || !password) {
-    return res.status(400).json({ message: "Username and password are required" });
+  if (!username) {
+    return res.status(400).json({ success: false, message: "📛 Username required" });
   }
 
-  if (username === OWNER_USERNAME && password === OWNER_PASSWORD) {
-    const token = jwt.sign({ role: "owner", username }, JWT_SECRET, { expiresIn: "1d" });
-    return res.json({ success: true, token });
-  } else {
-    return res.status(401).json({ success: false, message: "Invalid credentials" });
+  try {
+    const owner = await Owner.findOne({ email: username.toLowerCase() });
+    if (!owner) {
+      return res.status(404).json({ success: false, message: "❌ Owner not found" });
+    }
+
+    const token = jwt.sign(
+      { role: owner.role, username: owner.email },
+      JWT_SECRET,
+      { expiresIn: "2h" }
+    );
+
+    return res.json({
+      success: true,
+      message: "✅ Login successful!",
+      token,
+      owner
+    });
+  } catch (err) {
+    return res.status(500).json({ success: false, message: "❌ Server error" });
   }
 };
 
-// ✅ Owner Dashboard Stats (Static Demo)
+// ✅ Set or Update Owner Password
+exports.setPassword = async (req, res) => {
+  const { username, newPassword } = req.body;
+
+  if (!username || !newPassword) {
+    return res.status(400).json({ success: false, message: "Username & new password required" });
+  }
+
+  try {
+    const owner = await Owner.findOne({ email: username.toLowerCase() });
+    if (!owner) {
+      return res.status(404).json({ success: false, message: "❌ Owner not found" });
+    }
+
+    owner.password = newPassword;
+    await owner.save();
+
+    return res.json({ success: true, message: "✅ Password updated successfully" });
+  } catch (err) {
+    return res.status(500).json({ success: false, message: "❌ Failed to update password" });
+  }
+};
+
+// ✅ Owner Dashboard Stats (sample data)
 exports.getOwnerStats = async (req, res) => {
   try {
-    // TODO: Replace static data with dynamic DB queries later
+    // Replace with actual DB logic later
     res.json({
       success: true,
-      stats: {
-        totalOrders: 123,
-        totalRevenue: "₹12,000",
-        activeDeliveryBoys: 5,
-        registeredSellers: 8,
-      },
+      orders: 123,
+      revenue: 12000,
+      deliveryBoys: 6,
+      sellers: 8,
+      customers: 20
     });
-  } catch (error) {
-    res.status(500).json({ success: false, message: "Failed to load stats" });
+  } catch (err) {
+    res.status(500).json({ success: false, message: "❌ Failed to load stats" });
   }
 };
