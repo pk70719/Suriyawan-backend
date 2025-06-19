@@ -11,7 +11,7 @@ const verifySeller = (req, res, next) => {
   const token = authHeader && authHeader.split(" ")[1];
   if (!token) return res.status(401).json({ success: false, message: "🔐 Token missing" });
 
-  jwt.verify(token, process.env.JWT_SECRET || 'defaultsecret', (err, decoded) => {
+  jwt.verify(token, process.env.JWT_SECRET || 'suriyawan1Super2SecretKey77', (err, decoded) => {
     if (err) return res.status(403).json({ success: false, message: "❌ Invalid token" });
     req.sellerId = decoded.id;
     next();
@@ -28,11 +28,11 @@ router.post('/login', async (req, res) => {
       return res.status(401).json({ success: false, message: "❌ Invalid credentials" });
     }
 
-    const token = jwt.sign({ id: seller._id }, process.env.JWT_SECRET || 'defaultsecret', {
+    const token = jwt.sign({ id: seller._id, role: "seller" }, process.env.JWT_SECRET || 'suriyawan1Super2SecretKey77', {
       expiresIn: '7d'
     });
 
-    res.json({ success: true, message: "✅ Login successful", token });
+    res.json({ success: true, message: "✅ लॉगिन सफल!", token, seller });
   } catch (err) {
     res.status(500).json({ success: false, message: "⚠️ Server error during login" });
   }
@@ -41,13 +41,17 @@ router.post('/login', async (req, res) => {
 // ➕ Add Product
 router.post('/product', verifySeller, async (req, res) => {
   try {
-    const { name, price, description } = req.body;
+    const { name, price, description, category, image } = req.body;
+
     const product = new Product({
       seller: req.sellerId,
       name,
       price,
-      description
+      description,
+      category,
+      image
     });
+
     await product.save();
     res.json({ success: true, message: "✅ Product added", product });
   } catch (err) {
@@ -68,15 +72,18 @@ router.get('/products', verifySeller, async (req, res) => {
 // ✏️ Update Product
 router.put('/product/:id', verifySeller, async (req, res) => {
   try {
-    const { name, price, description } = req.body;
+    const { name, price, description, category, image } = req.body;
+
     const updated = await Product.findOneAndUpdate(
       { _id: req.params.id, seller: req.sellerId },
-      { name, price, description },
+      { name, price, description, category, image },
       { new: true }
     );
+
     if (!updated) {
       return res.status(404).json({ success: false, message: "❌ Product not found or unauthorized" });
     }
+
     res.json({ success: true, message: "✅ Product updated", product: updated });
   } catch (err) {
     res.status(500).json({ success: false, message: "⚠️ Error updating product" });
@@ -87,9 +94,11 @@ router.put('/product/:id', verifySeller, async (req, res) => {
 router.delete('/product/:id', verifySeller, async (req, res) => {
   try {
     const deleted = await Product.findOneAndDelete({ _id: req.params.id, seller: req.sellerId });
+
     if (!deleted) {
       return res.status(404).json({ success: false, message: "❌ Product not found or unauthorized" });
     }
+
     res.json({ success: true, message: "✅ Product deleted" });
   } catch (err) {
     res.status(500).json({ success: false, message: "⚠️ Error deleting product" });
@@ -103,6 +112,7 @@ router.get('/profile', verifySeller, async (req, res) => {
     if (!seller) {
       return res.status(404).json({ success: false, message: "❌ Seller not found" });
     }
+
     res.json({ success: true, seller });
   } catch (err) {
     res.status(500).json({ success: false, message: "⚠️ Error fetching profile" });
