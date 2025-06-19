@@ -2,13 +2,13 @@ const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
 
-// 🔧 Base upload directory: /uploads
+// ✅ Base upload directory: /uploads
 const baseDir = path.join(__dirname, '..', 'uploads');
 if (!fs.existsSync(baseDir)) {
   fs.mkdirSync(baseDir);
 }
 
-// 📂 Dynamically create folders for roles (seller, customer, delivery)
+// ✅ Create folder for each role dynamically (seller, customer, delivery)
 const getUploadPath = (role) => {
   const dir = path.join(baseDir, role.toLowerCase());
   if (!fs.existsSync(dir)) {
@@ -17,11 +17,10 @@ const getUploadPath = (role) => {
   return dir;
 };
 
-// 💾 Multer storage config
+// ✅ Configure Multer storage
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    // Get role from route param, body, or user object
-    const userRole = req.params.role || req.body.role || req.user?.role || 'general';
+    const userRole = req.params.role || req.body.role || 'general';
     const uploadPath = getUploadPath(userRole);
     cb(null, uploadPath);
   },
@@ -32,7 +31,7 @@ const storage = multer.diskStorage({
   }
 });
 
-// 🔒 Optional file filter (images only)
+// ✅ Only allow image files
 const fileFilter = (req, file, cb) => {
   const allowed = /jpeg|jpg|png|gif|webp/;
   const ext = path.extname(file.originalname).toLowerCase();
@@ -44,12 +43,12 @@ const fileFilter = (req, file, cb) => {
   }
 };
 
-// ✅ Export configured multer instance
+// ✅ Create multer instance with limits
 const upload = multer({
   storage,
   fileFilter,
   limits: {
-    fileSize: 5 * 1024 * 1024 // Max file size = 5MB
+    fileSize: 5 * 1024 * 1024 // Max 5MB
   }
 });
 
