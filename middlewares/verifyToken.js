@@ -1,9 +1,9 @@
 const jwt = require("jsonwebtoken");
 
+const JWT_SECRET = process.env.JWT_SECRET || "suriyawan1Super2SecretKey77";
+
 /**
  * 🔐 Middleware: Verify JWT Token
- * Checks if the request has a valid JWT token.
- * Injects user data into req.user if valid.
  */
 const verifyToken = (req, res, next) => {
   try {
@@ -17,8 +17,7 @@ const verifyToken = (req, res, next) => {
     }
 
     const token = authHeader.split(" ")[1];
-
-    const decoded = jwt.verify(token, process.env.JWT_SECRET || "fallbackSecret");
+    const decoded = jwt.verify(token, JWT_SECRET);
 
     if (!decoded || !decoded.role || !decoded.username) {
       return res.status(403).json({
@@ -27,10 +26,11 @@ const verifyToken = (req, res, next) => {
       });
     }
 
-    // ✅ Attach decoded user to request
+    // ✅ Inject decoded info into req.user
     req.user = {
       username: decoded.username,
       role: decoded.role,
+      id: decoded.id || null,
     };
 
     next();
