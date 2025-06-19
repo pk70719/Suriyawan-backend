@@ -4,46 +4,57 @@ const customerSchema = new mongoose.Schema(
   {
     name: {
       type: String,
-      required: true,
-      trim: true
+      required: [true, "👤 Name is required"],
+      trim: true,
+      minlength: [2, "Name should be at least 2 characters"]
     },
 
     email: {
       type: String,
-      required: true,
+      required: [true, "📧 Email is required"],
       unique: true,
-      lowercase: true
+      lowercase: true,
+      trim: true,
+      match: [/^\S+@\S+\.\S+$/, "Invalid email format"]
     },
 
     password: {
       type: String,
-      required: true
+      required: [true, "🔒 Password is required"],
+      minlength: [6, "Password must be at least 6 characters"]
     },
 
     mobile: {
       type: String,
-      required: true,
-      unique: true
+      required: [true, "📱 Mobile number is required"],
+      unique: true,
+      match: [/^[6-9]\d{9}$/, "Invalid Indian mobile number"]
     },
 
     address: {
       type: String,
-      default: ""
+      default: "",
+      trim: true
     },
 
     pincode: {
       type: String,
-      default: ""
+      default: "",
+      match: [/^\d{6}$/, "Invalid PIN code"]
     },
 
     imageUrl: {
       type: String,
-      default: "" // Profile image
+      default: "" // Will hold image path or URL
     }
   },
   {
-    timestamps: true // ✅ Yeh yahan hona chahiye
+    timestamps: true // ✅ Adds createdAt & updatedAt automatically
   }
 );
+
+// Optional: Add index for performance
+customerSchema.index({ email: 1 });
+customerSchema.index({ mobile: 1 });
 
 module.exports = mongoose.model("Customer", customerSchema);
