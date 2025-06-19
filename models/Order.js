@@ -22,33 +22,36 @@ const orderSchema = new mongoose.Schema(
 
     product: {
       type: String,
-      required: true
+      required: [true, "🧾 Product name is required"]
     },
 
     price: {
       type: Number,
-      required: true
+      required: [true, "💰 Product price is required"],
+      min: [0, "Price must be positive"]
     },
 
     quantity: {
       type: Number,
-      default: 1
+      default: 1,
+      min: [1, "Minimum quantity is 1"]
     },
 
     address: {
       type: String,
-      required: true
+      required: [true, "📦 Delivery address is required"]
     },
 
     pincode: {
       type: String,
-      required: true
+      required: [true, "📍 Pincode is required"]
     },
 
     trackingId: {
       type: String,
+      required: [true, "📌 Tracking ID is required"],
       unique: true,
-      required: true
+      trim: true
     },
 
     status: {
@@ -72,7 +75,12 @@ const orderSchema = new mongoose.Schema(
       type: Date
     }
   },
-  { timestamps: true }
+  {
+    timestamps: true
+  }
 );
+
+// ✅ Index for faster search on tracking ID
+orderSchema.index({ trackingId: 1 });
 
 module.exports = mongoose.model("Order", orderSchema);
