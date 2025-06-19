@@ -1,23 +1,23 @@
-const mongoose = require('mongoose');
+const mongoose = require("mongoose");
 
 const productSchema = new mongoose.Schema(
   {
     seller: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: 'Seller',
-      required: true
+      ref: "Seller",
+      required: [true, "Seller reference is required"]
     },
 
     name: {
       type: String,
-      required: true,
+      required: [true, "Product name is required"],
       trim: true
     },
 
     price: {
       type: Number,
-      required: true,
-      min: 0
+      required: [true, "Price is required"],
+      min: [0, "Price must be a positive number"]
     },
 
     description: {
@@ -32,12 +32,13 @@ const productSchema = new mongoose.Schema(
 
     stock: {
       type: Number,
-      default: 100
+      default: 100,
+      min: [0, "Stock cannot be negative"]
     },
 
     image: {
       type: String,
-      default: ""
+      default: "" // Image URL
     },
 
     isActive: {
@@ -45,28 +46,36 @@ const productSchema = new mongoose.Schema(
       default: true
     },
 
-    // 🛒 Orders placed for this product (used by all portals for tracking)
     orders: [
       {
         customerId: {
           type: mongoose.Schema.Types.ObjectId,
-          ref: 'Customer'
+          ref: "Customer"
         },
-        customerName: String,
-        address: String,
-        phone: String,
+        customerName: {
+          type: String,
+          default: ""
+        },
+        address: {
+          type: String,
+          default: ""
+        },
+        phone: {
+          type: String,
+          default: ""
+        },
         quantity: {
           type: Number,
           default: 1
         },
         status: {
           type: String,
-          enum: ['Pending', 'Shipped', 'Out for Delivery', 'Delivered', 'Cancelled'],
-          default: 'Pending'
+          enum: ["Pending", "Shipped", "Out for Delivery", "Delivered", "Cancelled"],
+          default: "Pending"
         },
         trackingId: {
           type: String,
-          default: ''
+          default: ""
         },
         orderedAt: {
           type: Date,
@@ -75,7 +84,9 @@ const productSchema = new mongoose.Schema(
       }
     ]
   },
-  { timestamps: true }
+  {
+    timestamps: true
+  }
 );
 
-module.exports = mongoose.model('Product', productSchema);
+module.exports = mongoose.model("Product", productSchema);
