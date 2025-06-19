@@ -4,30 +4,34 @@ const deliveryBoySchema = new mongoose.Schema(
   {
     name: {
       type: String,
-      required: true,
-      trim: true
+      required: [true, "👤 Name is required"],
+      trim: true,
+      minlength: [2, "Name should be at least 2 characters"]
     },
 
     phone: {
       type: String,
-      required: true,
+      required: [true, "📱 Phone number is required"],
       unique: true,
-      trim: true
+      trim: true,
+      match: [/^[6-9]\d{9}$/, "Invalid Indian mobile number"]
     },
 
     password: {
       type: String,
-      required: true
+      required: [true, "🔒 Password is required"],
+      minlength: [6, "Password must be at least 6 characters"]
     },
 
     assignedParcels: {
-      type: [String], // Array of tracking IDs
+      type: [String], // 🧾 Array of tracking IDs
       default: []
     },
 
     cashCollected: {
       type: Number,
-      default: 0
+      default: 0,
+      min: 0
     },
 
     location: {
@@ -49,12 +53,15 @@ const deliveryBoySchema = new mongoose.Schema(
 
     imageUrl: {
       type: String,
-      default: "" // For profile photo if needed
+      default: "" // 🖼️ Profile image
     }
   },
   {
-    timestamps: true // ✅ Important for tracking when delivery boy joined/updated
+    timestamps: true // ⏱️ createdAt & updatedAt enabled
   }
 );
+
+// ✅ Index for faster lookups
+deliveryBoySchema.index({ phone: 1 });
 
 module.exports = mongoose.model("DeliveryBoy", deliveryBoySchema);
