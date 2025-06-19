@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const verifyToken = require('../middlewares/verifyToken');
 
+// ✅ Product Controller Functions
 const {
   addProduct,
   getSellerProducts,
@@ -13,44 +14,40 @@ const {
   getDeliveryProducts
 } = require('../controllers/productController');
 
+// ==============================
+// 📦 SELLER PRODUCT OPERATIONS
+// ==============================
 
-// ============================
-// 📦 SELLER ROUTES (Protected)
-// ============================
-
-// ✅ Add a new product
+// ✅ Add new product (Only Seller)
 router.post('/seller', verifyToken, addProduct);
 
-// ✅ Get all products uploaded by seller
+// ✅ Get seller’s own products
 router.get('/seller', verifyToken, getSellerProducts);
 
-// ✅ Update product info
+// ✅ Update product by ID
 router.put('/seller/:id', verifyToken, updateProduct);
 
-// ✅ Delete a product
+// ✅ Delete product by ID
 router.delete('/seller/:id', verifyToken, deleteProduct);
 
-// ✅ Toggle product availability (active/inactive)
+// ✅ Toggle availability (active/inactive)
 router.patch('/seller/:id/toggle', verifyToken, toggleAvailability);
 
+// ==============================
+// 🚚 DELIVERY BOY OPERATIONS
+// ==============================
 
-// ================================
-// 🚚 DELIVERY BOY ROUTES (Secure)
-// ================================
-
-// ✅ Assign product to delivery (e.g., part of run sheet)
+// ✅ Assign product to delivery
 router.post('/delivery/assign/:productId', verifyToken, assignProductToDelivery);
 
-// ✅ Get assigned deliveries (products) for delivery boy
+// ✅ Get products assigned to delivery boy
 router.get('/delivery', verifyToken, getDeliveryProducts);
 
+// ==============================
+// 🛒 CUSTOMER PRODUCT VIEW
+// ==============================
 
-// ===============================
-// 🛒 CUSTOMER ROUTES (Public View)
-// ===============================
-
-// ✅ Fetch all active products for customers (shop view)
+// ✅ Get all active products (visible to customers)
 router.get('/customer', getAllProductsForCustomer);
-
 
 module.exports = router;
