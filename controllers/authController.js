@@ -6,59 +6,81 @@ const Owner = require("../models/Owner");
 const Customer = require("../models/Customer");
 const DeliveryBoy = require("../models/DeliveryBoy");
 
-// ------------------------------
-// 📦 SELLER: Register & Login
-// ------------------------------
+const createToken = (data) => {
+  return jwt.sign(data, process.env.JWT_SECRET, { expiresIn: "7d" });
+};
 
-// ✅ Seller Register
+// ----------------------------------
+// 👑 OWNER LOGIN
+// ----------------------------------
+exports.loginOwner = async (req, res) => {
+  try {
+    const { username, password } = req.body;
+    if (!username || !password)
+      return res.status(400).json({ success: false, message: "Username & password required" });
+
+    const owner = await Owner.findOne({ username });
+    if (!owner)
+      return res.status(404).json({ success: false, message: "Owner not found" });
+
+    const isMatch = await bcrypt.compare(password, owner.password);
+    if (!isMatch)
+      return res.status(401).json({ success: false, message: "Incorrect password" });
+
+    const token = createToken({ username, role: "owner" });
+
+    res.status(200).json({
+      success: true,
+      message: "✅ लॉगिन सफल!",
+      token,
+      owner: { id: owner._id, username: owner.username },
+    });
+  } catch (err) {
+    console.error("Owner Login Error:", err.message);
+    res.status(500).json({ success: false, message: "Server error" });
+  }
+};
+
+// ----------------------------------
+// 🧑‍💼 SELLER REGISTER & LOGIN
+// ----------------------------------
 exports.registerSeller = async (req, res) => {
   try {
     const { username, password, category, pincode } = req.body;
-
-    if (!username || !password) {
+    if (!username || !password)
       return res.status(400).json({ message: "All fields are required." });
-    }
 
-    const existingSeller = await Seller.findOne({ username });
-    if (existingSeller) {
+    const exists = await Seller.findOne({ username });
+    if (exists)
       return res.status(400).json({ message: "Seller already exists." });
-    }
 
-    const hashedPassword = await bcrypt.hash(password, 10);
-    const newSeller = new Seller({ username, password: hashedPassword, category, pincode });
+    const hash = await bcrypt.hash(password, 10);
+    const newSeller = new Seller({ username, password: hash, category, pincode });
     await newSeller.save();
 
     res.status(201).json({ message: "Seller registered successfully." });
   } catch (err) {
     console.error("Seller Register Error:", err.message);
-    res.status(500).json({ message: "Server error" });
+    res.status(500).json({ message: "Server error." });
   }
 };
 
-// ✅ Seller Login
 exports.loginSeller = async (req, res) => {
   try {
     const { username, password } = req.body;
-
-    if (!username || !password) {
-      return res.status(400).json({ success: false, message: "All fields required." });
-    }
-
     const seller = await Seller.findOne({ username });
-    if (!seller) {
-      return res.status(401).json({ success: false, message: "Invalid credentials." });
-    }
+    if (!seller)
+      return res.status(404).json({ message: "Seller not found." });
 
     const isMatch = await bcrypt.compare(password, seller.password);
-    if (!isMatch) {
-      return res.status(401).json({ success: false, message: "Wrong password." });
-    }
+    if (!isMatch)
+      return res.status(401).json({ message: "Incorrect password." });
 
-    const token = jwt.sign({ id: seller._id, role: "seller" }, process.env.JWT_SECRET, { expiresIn: "7d" });
+    const token = createToken({ username, role: "seller" });
 
-    res.status(200).json({
+    res.json({
       success: true,
-      message: "Login successful.",
+      message: "✅ Seller login successful",
       token,
       seller: {
         id: seller._id,
@@ -68,23 +90,23 @@ exports.loginSeller = async (req, res) => {
       }
     });
   } catch (err) {
-    console.error("Login Error:", err.message);
-    res.status(500).json({ success: false, message: "Server error. Try again later." });
+    console.error("Seller Login Error:", err.message);
+    res.status(500).json({ message: "Server error." });
   }
 };
 
-// ------------------------------
-// 🛍️ CUSTOMER: Register & Login
-// ------------------------------
-
+// ----------------------------------
+// 👥 CUSTOMER REGISTER & LOGIN
+// ----------------------------------
 exports.customerRegister = async (req, res) => {
   try {
     const { username, password, phone } = req.body;
+    if (!username || !password)
+      return res.status(400).json({ message: "All fields required." });
 
-    if (!username || !password) return res.status(400).json({ message: "All fields are required." });
-
-    const existing = await Customer.findOne({ username });
-    if (existing) return res.status(400).json({ message: "Customer already exists." });
+    const exists = await Customer.findOne({ username });
+    if (exists)
+      return res.status(400).json({ message: "Customer already exists." });
 
     const hash = await bcrypt.hash(password, 10);
     const newCustomer = new Customer({ username, password: hash, phone });
@@ -100,21 +122,24 @@ exports.customerRegister = async (req, res) => {
 exports.customerLogin = async (req, res) => {
   try {
     const { username, password } = req.body;
-    const user = await Customer.findOne({ username });
+    const customer = await Customer.findOne({ username });
+    if (!customer)
+      return res.status(404).json({ message: "Customer not found." });
 
-    if (!user) return res.status(404).json({ message: "Customer not found." });
+    const isMatch = await bcrypt.compare(password, customer.password);
+    if (!isMatch)
+      return res.status(401).json({ message: "Incorrect password." });
 
-    const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch) return res.status(401).json({ message: "Incorrect password." });
-
-    const token = jwt.sign({ id: user._id, role: "customer" }, process.env.JWT_SECRET, { expiresIn: "7d" });
+    const token = createToken({ username, role: "customer" });
 
     res.json({
+      success: true,
+      message: "✅ Customer login successful",
       token,
       customer: {
-        id: user._id,
-        username: user.username,
-        phone: user.phone
+        id: customer._id,
+        username: customer.username,
+        phone: customer.phone
       }
     });
   } catch (err) {
@@ -123,18 +148,18 @@ exports.customerLogin = async (req, res) => {
   }
 };
 
-// ------------------------------
-// 🚚 DELIVERY BOY: Register & Login
-// ------------------------------
-
+// ----------------------------------
+// 🚚 DELIVERY BOY REGISTER & LOGIN
+// ----------------------------------
 exports.deliveryBoyRegister = async (req, res) => {
   try {
     const { username, password, area } = req.body;
+    if (!username || !password)
+      return res.status(400).json({ message: "All fields required." });
 
-    if (!username || !password) return res.status(400).json({ message: "All fields are required." });
-
-    const existing = await DeliveryBoy.findOne({ username });
-    if (existing) return res.status(400).json({ message: "Delivery boy already exists." });
+    const exists = await DeliveryBoy.findOne({ username });
+    if (exists)
+      return res.status(400).json({ message: "Delivery boy already exists." });
 
     const hash = await bcrypt.hash(password, 10);
     const newBoy = new DeliveryBoy({ username, password: hash, area });
@@ -150,54 +175,28 @@ exports.deliveryBoyRegister = async (req, res) => {
 exports.deliveryBoyLogin = async (req, res) => {
   try {
     const { username, password } = req.body;
+    const boy = await DeliveryBoy.findOne({ username });
+    if (!boy)
+      return res.status(404).json({ message: "Delivery boy not found." });
 
-    const user = await DeliveryBoy.findOne({ username });
-    if (!user) return res.status(404).json({ message: "Not found." });
+    const isMatch = await bcrypt.compare(password, boy.password);
+    if (!isMatch)
+      return res.status(401).json({ message: "Incorrect password." });
 
-    const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch) return res.status(401).json({ message: "Incorrect password." });
-
-    const token = jwt.sign({ id: user._id, role: "delivery" }, process.env.JWT_SECRET, { expiresIn: "7d" });
+    const token = createToken({ username, role: "delivery" });
 
     res.json({
+      success: true,
+      message: "✅ Delivery boy login successful",
       token,
       deliveryBoy: {
-        id: user._id,
-        username: user.username,
-        area: user.area
+        id: boy._id,
+        username: boy.username,
+        area: boy.area
       }
     });
   } catch (err) {
     console.error("DeliveryBoy Login Error:", err.message);
-    res.status(500).json({ message: "Server error." });
-  }
-};
-
-// ------------------------------
-// 👑 OWNER: Login only (manual account)
-// ------------------------------
-
-exports.loginOwner = async (req, res) => {
-  try {
-    const { username, password } = req.body;
-
-    const owner = await Owner.findOne({ username });
-    if (!owner) return res.status(404).json({ message: "Owner not found." });
-
-    const isMatch = await bcrypt.compare(password, owner.password);
-    if (!isMatch) return res.status(401).json({ message: "Incorrect password." });
-
-    const token = jwt.sign({ id: owner._id, role: "owner" }, process.env.JWT_SECRET, { expiresIn: "7d" });
-
-    res.json({
-      token,
-      owner: {
-        id: owner._id,
-        username: owner.username
-      }
-    });
-  } catch (err) {
-    console.error("Owner Login Error:", err.message);
     res.status(500).json({ message: "Server error." });
   }
 };
