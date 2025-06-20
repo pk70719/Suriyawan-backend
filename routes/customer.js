@@ -1,7 +1,43 @@
 const express = require("express");
 const router = express.Router();
+const Customer = require("../models/Customer"); // 👈 Required to create new customer
 
+// ===============================
+// 📝 D0: Customer Registration (Public)
+// ===============================
+router.post("/register", async (req, res) => {
+  try {
+    const { name, email, password, mobile, address } = req.body;
+
+    if (!name || !email || !password || !mobile || !address) {
+      return res.status(400).json({ success: false, message: "All fields are required" });
+    }
+
+    // Check if email already exists
+    const existingEmail = await Customer.findOne({ email });
+    if (existingEmail) {
+      return res.status(409).json({ success: false, message: "Email already registered" });
+    }
+
+    // Check if mobile already exists
+    const existingMobile = await Customer.findOne({ mobile });
+    if (existingMobile) {
+      return res.status(409).json({ success: false, message: "Mobile number already registered" });
+    }
+
+    const newCustomer = new Customer({ name, email, password, mobile, address });
+    await newCustomer.save();
+
+    res.json({ success: true, message: "Customer registered successfully!" });
+  } catch (err) {
+    console.error("❌ Registration Error:", err.message);
+    res.status(500).json({ success: false, message: "Server error. Try again." });
+  }
+});
+
+// ===============================
 // 📦 Controller Functions
+// ===============================
 const {
   login,
   logout,
@@ -12,7 +48,9 @@ const {
   helpdesk
 } = require("../controllers/customerController");
 
+// ===============================
 // 🔐 Middleware
+// ===============================
 const { verifyCustomer } = require("../middlewares/auth");
 
 // ===============================
