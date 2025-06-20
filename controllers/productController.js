@@ -111,3 +111,44 @@ exports.toggleAvailability = async (req, res) => {
     res.status(500).json({ success: false, message: "Server error while toggling availability" });
   }
 };
+
+// 🚚 Assign Product to Delivery Boy
+exports.assignProductToDelivery = async (req, res) => {
+  try {
+    const productId = req.params.productId;
+    const deliveryBoyId = req.user.id;
+
+    const product = await Product.findById(productId);
+    if (!product) return res.status(404).json({ success: false, message: "❌ Product not found" });
+
+    product.assignedTo = deliveryBoyId;
+    await product.save();
+
+    res.json({ success: true, message: "✅ Product assigned to delivery boy" });
+  } catch (err) {
+    console.error("❌ Assign Error:", err.message);
+    res.status(500).json({ success: false, message: "Server error while assigning product" });
+  }
+};
+
+// 🚚 Get Products Assigned to Delivery Boy
+exports.getDeliveryProducts = async (req, res) => {
+  try {
+    const products = await Product.find({ assignedTo: req.user.id });
+    res.json({ success: true, products });
+  } catch (err) {
+    console.error("❌ Fetch Delivery Products Error:", err.message);
+    res.status(500).json({ success: false, message: "Server error while fetching delivery products" });
+  }
+};
+
+// 🛒 Get All Active Products for Customers
+exports.getAllProductsForCustomer = async (req, res) => {
+  try {
+    const products = await Product.find({ available: true }).sort({ createdAt: -1 });
+    res.json({ success: true, products });
+  } catch (err) {
+    console.error("❌ Fetch Customer Products Error:", err.message);
+    res.status(500).json({ success: false, message: "Server error while fetching products" });
+  }
+};
