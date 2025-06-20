@@ -6,11 +6,12 @@ const bcrypt = require("bcryptjs");
 
 const SECRET = process.env.JWT_SECRET || "suriyawan-secret";
 
-// 🔐 Token Utility
+// 🔐 Token Create
 function createToken(customer) {
   return jwt.sign({ id: customer._id, role: "customer" }, SECRET, { expiresIn: "7d" });
 }
 
+// 🔐 Token Verify
 function verifyToken(req) {
   const token =
     req.cookies?.customerToken ||
@@ -21,26 +22,35 @@ function verifyToken(req) {
 
   try {
     return jwt.verify(token, SECRET);
-  } catch (err) {
+  } catch {
     return null;
   }
 }
 
-// ✅ Register
+// ✅ 1. Customer Registration
 exports.register = async (req, res) => {
   try {
     const { name, email, password, mobile, address } = req.body;
-    if (!name || !email || !password || !mobile || !address)
-      return res.status(400).json({ success: false, message: "❌ All fields are required" });
 
-    const exists = await Customer.findOne({ email });
+    if (!name || !email || !password || !mobile || !address) {
+      return res.status(400).json({ success: false, message: "❌ All fields are required" });
+    }
+
+    const emailLower = email.toLowerCase();
+
+    const exists = await Customer.findOne({ email: emailLower });
     if (exists)
       return res.status(409).json({ success: false, message: "❗ Email already registered" });
 
+    const mobileExists = await Customer.findOne({ mobile });
+    if (mobileExists)
+      return res.status(409).json({ success: false, message: "❗ Mobile number already registered" });
+
     const hashedPassword = await bcrypt.hash(password, 10);
-    const customer = await Customer.create({
+
+    await Customer.create({
       name,
-      email: email.toLowerCase(),
+      email: emailLower,
       password: hashedPassword,
       mobile,
       address,
@@ -49,18 +59,21 @@ exports.register = async (req, res) => {
     res.status(201).json({ success: true, message: "✅ Registration successful" });
   } catch (err) {
     console.error("Register Error:", err.message);
-    res.status(500).json({ success: false, message: "Server error during registration" });
+    res.status(500).json({ success: false, message: "❌ Server error during registration" });
   }
 };
 
-// ✅ Login
+// ✅ 2. Customer Login
 exports.login = async (req, res) => {
   try {
     const { email, password } = req.body;
+
     if (!email || !password)
       return res.status(400).json({ success: false, message: "📧 Email aur 🔑 password required hai." });
 
-    const user = await Customer.findOne({ email });
+    const emailLower = email.toLowerCase();
+    const user = await Customer.findOne({ email: emailLower });
+
     if (!user)
       return res.status(401).json({ success: false, message: "❌ Invalid credentials (email)." });
 
@@ -69,8 +82,13 @@ exports.login = async (req, res) => {
       return res.status(401).json({ success: false, message: "❌ Invalid credentials (password)." });
 
     const token = createToken(user);
+
     res
-      .cookie("customerToken", token, { httpOnly: true, sameSite: "Lax", secure: true })
+      .cookie("customerToken", token, {
+        httpOnly: true,
+        sameSite: "Lax",
+        secure: process.env.NODE_ENV === "production" // ✅ false for localhost
+      })
       .json({
         success: true,
         message: "✅ लॉगिन सफल!",
@@ -84,31 +102,32 @@ exports.login = async (req, res) => {
       });
   } catch (err) {
     console.error("Login Error:", err.message);
-    res.status(500).json({ success: false, message: "Server error" });
+    res.status(500).json({ success: false, message: "Server error during login" });
   }
 };
 
-// ✅ Customer Info
+// ✅ 3. Customer Info
 exports.info = async (req, res) => {
   const auth = verifyToken(req);
   if (!auth) return res.status(401).json({ success: false, message: "🔐 Unauthorized" });
 
   try {
     const user = await Customer.findById(auth.id).select("name email mobile");
-    if (!user) return res.status(404).json({ success: false, message: "❌ Customer not found" });
+    if (!user)
+      return res.status(404).json({ success: false, message: "❌ Customer not found" });
 
     res.json({ success: true, customer: user });
   } catch (err) {
-    res.status(500).json({ success: false, message: "Server error while fetching info" });
+    res.status(500).json({ success: false, message: "❌ Error while fetching info" });
   }
 };
 
-// ✅ Logout
+// ✅ 4. Logout
 exports.logout = (req, res) => {
   res.clearCookie("customerToken").json({ success: true, message: "👋 Logged out successfully" });
 };
 
-// ✅ All Products
+// ✅ 5. Load All Products
 exports.products = async (req, res) => {
   try {
     const products = await Product.find();
@@ -118,7 +137,7 @@ exports.products = async (req, res) => {
   }
 };
 
-// ✅ Place Order
+// ✅ 6. Place Order
 exports.order = async (req, res) => {
   const auth = verifyToken(req);
   if (!auth) return res.status(401).json({ success: false, message: "🔐 Login required" });
@@ -145,7 +164,7 @@ exports.order = async (req, res) => {
   }
 };
 
-// ✅ Track Order
+// ✅ 7. Track Order
 exports.track = async (req, res) => {
   const auth = verifyToken(req);
   if (!auth) return res.status(401).json({ success: false, message: "🔐 Unauthorized" });
@@ -161,7 +180,7 @@ exports.track = async (req, res) => {
   }
 };
 
-// ✅ Help Desk
+// ✅ 8. AI Help Desk (Placeholder)
 exports.helpdesk = async (req, res) => {
   const { question } = req.body;
   if (!question)
