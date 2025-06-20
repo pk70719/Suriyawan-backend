@@ -4,7 +4,7 @@ const verifyToken = require('../middlewares/verifyToken');
 
 // ✅ Product Controller Functions
 const {
-  addProduct,
+  createProduct,                  // 🔄 Fixed name from addProduct ➜ createProduct
   getSellerProducts,
   updateProduct,
   deleteProduct,
@@ -19,7 +19,7 @@ const {
 // ==============================
 
 // ✅ Add new product (Only Seller)
-router.post('/seller', verifyToken, addProduct);
+router.post('/seller', verifyToken, createProduct);  // 🔄 Fixed function name
 
 // ✅ Get seller’s own products
 router.get('/seller', verifyToken, getSellerProducts);
