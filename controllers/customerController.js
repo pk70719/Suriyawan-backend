@@ -63,7 +63,7 @@ exports.register = async (req, res) => {
   }
 };
 
-// ✅ 2. Customer Login
+// ✅ 2. Customer Login (Updated for Cookie/CORS support)
 exports.login = async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -86,8 +86,8 @@ exports.login = async (req, res) => {
     res
       .cookie("customerToken", token, {
         httpOnly: true,
-        sameSite: "Lax",
-        secure: process.env.NODE_ENV === "production" // ✅ false for localhost
+        sameSite: "None",   // ✅ Important for cross-origin (GitHub Pages frontend)
+        secure: true        // ✅ Required when sameSite: "None"
       })
       .json({
         success: true,
@@ -102,7 +102,7 @@ exports.login = async (req, res) => {
       });
   } catch (err) {
     console.error("Login Error:", err.message);
-    res.status(500).json({ success: false, message: "Server error during login" });
+    res.status(500).json({ success: false, message: "❌ Server error during login" });
   }
 };
 
@@ -180,7 +180,7 @@ exports.track = async (req, res) => {
   }
 };
 
-// ✅ 8. AI Help Desk (Placeholder)
+// ✅ 8. AI Help Desk (Static Response)
 exports.helpdesk = async (req, res) => {
   const { question } = req.body;
   if (!question)
